@@ -3,18 +3,31 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-struct midi_device {
+#include <alsa/asoundlib.h>
+
+struct mac_midi_device {
     int port;
     int source;
     bool connected;
 };
 
-struct midi_device *init_midi_dev(int client, int port);
+struct mac_note {
+	int value;
+	char *name;
+};
 
-int register_on_note(int note, int octave, struct midi_device *dev, 
+static struct mac_note mapping[] = 
+	{{0, "c"}, {1, "c#"}, {2, "d"}, {3, "d#"},
+	 {4, "e"}, {5,  "f"}, {6, "f#"}, {7, "g"},
+	 {8, "g#"}, {9, "a"}, {10,"a#"}, {11,"b"}};
+
+
+struct mac_midi_device *mac_init_midi_dev(int client, int port);
+
+int mac_reg_on_note(int note, int octave, struct mac_midi_device *dev, 
                     void *(*callback[2])(void *param), void *params[2]);
 
-int register_on_note_c(char *note, int octave, struct midi_device *dev, 
+int mac_reg_on_note_c(char *note, int octave, struct mac_midi_device *dev, 
                     void *(*callback[2])(void *aram), void *params[2]);
 
 struct midi_device *init_midi_dev(int client, int port){
@@ -24,7 +37,7 @@ struct midi_device *init_midi_dev(int client, int port){
     return NULL;
 }
 
-int register_on_note(int note, int octave, struct midi_device *dev, 
+int register_on_note(int note, int octave, struct mac_midi_device *dev, 
                     void *(*callback[2])(void *aram), void *params[2]){
     if(note < 0 || dev == NULL || callback == NULL || params == NULL)
         return -1;
@@ -40,22 +53,13 @@ int register_on_note(int note, int octave, struct midi_device *dev,
     return 0;
 }
 
-int register_on_note_c(char *note, int octave, struct midi_device *dev, 
+int register_on_note_c(char *note, int octave, struct mac_midi_device *dev, 
                         void *(*callback[2])(void *aram), void *params[2]){
     int i;
-    char *notes[] = {"a",   "a#",   "b",    "c", 
-                     "c#",  "d",    "d#",   "e", 
-                     "f",   "f#",   "g",    "g#"};
 
     if(note == NULL || dev == NULL || callback == NULL || params == NULL)
         return -1;
 
-    for(i=0; i<sizeof(notes); i++){
-        if(notes[i][0] != note[0])
-            return -1;
-        if(tolower(notes[i][0]) != note[0])
-            return -1;
-    }
 
     return 0;
 }
@@ -71,7 +75,7 @@ static snd_seq_t *new_seq(char *name){
         return NULL; 
 
     snd_seq_set_client_name(temp, name);
-    if((portid = snd_seq_create_simple_port(handle, "name",
+    if((portid = snd_seq_create_simple_port(temp, "name",
                     SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE,
                     SND_SEQ_PORT_TYPE_APPLICATION)) <0)
         return NULL;
