@@ -63,9 +63,9 @@ struct mac_action_env *mac_init_env(struct mac_midi_device *mdev);
  	the action environment */
 int mac_start_event_loop(struct mac_action_env *env);
 
-int register_on_note(int note, int octave, struct mac_midi_device *dev, 
+int mac_reg_on_note(int note, int octave, struct mac_action_env *env, 
                     void *(*callback[2])(void *aram), void *params[2]){
-    if(note < 0 || dev == NULL || callback == NULL || params == NULL)
+    if(note < 0 || env == NULL || callback == NULL || params == NULL)
         return -1;
 
     if(callback[0] == NULL || callback[1] == NULL)
@@ -79,13 +79,15 @@ int register_on_note(int note, int octave, struct mac_midi_device *dev,
     return 0;
 }
 
-int register_on_note_c(char *note, int octave, struct mac_midi_device *dev, 
+/* convenience wrapper for mac_rec_on_note */
+int mac_reg_on_note_c(char *note, int octave, struct mac_action_env *env, 
                         void *(*callback[2])(void *aram), void *params[2]){
     int i;
 
-    if(note == NULL || dev == NULL || callback == NULL || params == NULL)
+    if(note == NULL || env == NULL || callback == NULL || params == NULL)
         return -1;
 
+	/* TODO: Impl*/
 
     return 0;
 }
