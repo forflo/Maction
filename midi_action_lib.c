@@ -7,8 +7,9 @@
 
 struct mac_midi_device {
     int port;
-    int source;
+    int client;
     bool connected;
+	snd_seq_t *sequencer;
 };
 
 struct mac_note {
@@ -21,8 +22,11 @@ static struct mac_note mapping[] =
 	 {4, "e"}, {5,  "f"}, {6, "f#"}, {7, "g"},
 	 {8, "g#"}, {9, "a"}, {10,"a#"}, {11,"b"}};
 
+static snd_seq_t *new_seq(char *name);
 
-struct mac_midi_device *mac_init_midi_dev(int client, int port);
+struct mac_midi_device *mac_init_midi_dev(int client, int port, char *name);
+
+int mac_connect(struct mac_midi_device *mdev);
 
 int mac_reg_on_note(int note, int octave, struct mac_midi_device *dev, 
                     void *(*callback[2])(void *param), void *params[2]);
@@ -62,6 +66,31 @@ int register_on_note_c(char *note, int octave, struct mac_midi_device *dev,
 
 
     return 0;
+}
+
+struct mac_midi_device *mac_init_midi_dev(int client, int port, char *name){
+	if (client < 0 || port < 0)
+		return NULL;
+
+	struct mac_midi_device *temp = (struct mac_midi_device *)
+			malloc(sizeof(struct mac_midi_device));
+	if(temp == NULL)
+		return NULL;
+
+	temp->port = port;
+	temp->client = client;
+	temp->connected = false;
+	temp->sequencer = new_seq(name);
+	if(temp->sequencer == NULL)
+		return NULL;
+
+	return temp;
+}
+
+int mac_connect(struct mac_midi_device *mdev){
+	if(snd_seq_connect_from(mdev->sequencer, 0, mdev->client, mdev->port) <0)
+		return -1;
+	return 0;
 }
 
 static snd_seq_t *new_seq(char *name){
