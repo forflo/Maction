@@ -235,7 +235,7 @@ static void mac_event_loop(struct mac_action_env *env){
 
 							if(event->data.note.note == temp->note)
 								/* mapping found. Calling function */
-								temp->callback[0](temp->params[0]);	
+								temp->callback[1](temp->params[1]);	
 						}
 						pthread_mutex_unlock(env->mutex);
 						break;

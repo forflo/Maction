@@ -139,8 +139,10 @@ int slist_add_at(struct slist *list, int index, void *content){
 		if(new == NULL)
 			return -1;
 
-		if(temp->next == NULL)
+		if(temp->next == NULL){
+			free(new);
 			return -1;
+		}
 		new->next = temp->next;
 		new->content = content;
 		temp->next = new;
@@ -263,8 +265,8 @@ void test_init(void){
 void test_usage(void){
 	struct slist *list = slist_init();
 	char **str = (char **) malloc(sizeof(char *) * 10);
-	char *str3 = (char *) malloc(sizeof(char));
-	char *str4 = (char *) malloc(sizeof(char));
+	char *str3 = (char *) malloc(sizeof(char) * 10);
+	char *str4 = (char *) malloc(sizeof(char) * 20);
 	int i, *rc, cnt;
 
 	/* test of functions slist_add and slist_get_at */
